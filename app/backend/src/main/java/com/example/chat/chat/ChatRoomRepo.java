@@ -1,1 +1,0 @@
-package com.example.chat.chat; import org.springframework.data.jpa.repository.*; import java.util.*; public interface ChatRoomRepo extends JpaRepository<ChatRoomEntity,Long>{ Optional<ChatRoomEntity> findByCode(String code);}

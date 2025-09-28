@@ -1,1 +1,0 @@
-package com.example.chat.files; import org.springframework.data.jpa.repository.*; public interface AttachmentRepo extends JpaRepository<AttachmentEntity,Long>{}

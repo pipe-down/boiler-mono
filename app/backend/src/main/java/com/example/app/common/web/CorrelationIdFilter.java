@@ -1,4 +1,4 @@
-package com.example.chat.web;
+package com.example.app.common.web;
 import jakarta.servlet.*; import jakarta.servlet.http.*; import org.slf4j.*; import org.springframework.stereotype.Component; import java.io.IOException; import java.util.UUID;
 @Component public class CorrelationIdFilter implements Filter {
   static final String HDR = "X-Request-ID"; private static final Logger log=LoggerFactory.getLogger(CorrelationIdFilter.class);

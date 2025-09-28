@@ -1,4 +1,4 @@
-package com.example.chat.web;
+package com.example.app.common.web;
 import jakarta.servlet.*; import jakarta.servlet.http.*; import org.springframework.beans.factory.annotation.*; import org.springframework.data.redis.core.StringRedisTemplate; import org.springframework.stereotype.Component;
 import java.io.IOException; import java.time.Duration;
 @Component

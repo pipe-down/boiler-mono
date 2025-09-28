@@ -1,1 +1,0 @@
-package com.example.chat.chat; import org.springframework.data.domain.*; import org.springframework.data.jpa.repository.*; import java.util.*; public interface MessageRepo extends JpaRepository<MessageEntity,Long>{ List<MessageEntity> findByRoom_CodeOrderByServerSeqAsc(String code, Pageable pageable);}

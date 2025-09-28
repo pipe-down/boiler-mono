@@ -53,6 +53,7 @@ dependencies {
   // Observability
   implementation("io.micrometer:micrometer-registry-prometheus:1.13.4")
   implementation("io.micrometer:micrometer-tracing-bridge-otel:1.3.4")
+  implementation("io.netty:netty-resolver-dns-native-macos:4.1.112.Final:osx-aarch_64")
   implementation("io.opentelemetry:opentelemetry-exporter-otlp:1.44.1")
 
   // Resilience4j
@@ -64,7 +65,7 @@ dependencies {
   // Sentry (optional)
   implementation("io.sentry:sentry-spring-boot-starter-jakarta:7.13.0")
   implementation("io.sentry:sentry-logback:7.13.0")
-  
+
   // Logstash
   implementation("net.logstash.logback:logstash-logback-encoder:7.4")
 

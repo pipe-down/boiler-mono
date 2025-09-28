@@ -4,6 +4,7 @@ import com.example.app.common.data.Pageing;
 import com.example.app.common.data.Specs;
 import com.example.app.message.domain.Message;
 import com.example.app.message.repository.MessageRepository;
+import com.example.app.message.web.dto.MessageResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -20,9 +21,11 @@ import java.util.UUID;
 public class MessageService {
 
     private final MessageRepository messageRepository;
+    private final RedisBroadcast redisBroadcast;
 
-    public MessageService(MessageRepository messageRepository) {
+    public MessageService(MessageRepository messageRepository, RedisBroadcast redisBroadcast) {
         this.messageRepository = messageRepository;
+        this.redisBroadcast = redisBroadcast;
     }
 
     public List<Message> list() {
@@ -51,7 +54,20 @@ public class MessageService {
         message.setSenderId(command.senderId());
         message.setText(command.text());
         message.setCreatedAt(Instant.now());
-        return messageRepository.save(message);
+
+        Message savedMessage = messageRepository.save(message);
+
+        // After saving, publish to Redis
+        MessageResponse dto = new MessageResponse(
+                savedMessage.getId(),
+                savedMessage.getRoomId(),
+                savedMessage.getSenderId(),
+                savedMessage.getText(),
+                savedMessage.getCreatedAt()
+        );
+        redisBroadcast.publish(dto);
+
+        return savedMessage;
     }
 
     @Transactional

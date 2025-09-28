@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const BASE = process.env.SPRING_BASE_URL ?? "http://localhost:8080";
+const BASE = process.env.NEXT_PUBLIC_SPRING_BASE_URL ?? "http://localhost:9094";
 
 async function proxy(req: NextRequest, method: string, path: string[]) {
   const url = new URL(req.url);
