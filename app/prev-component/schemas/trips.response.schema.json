@@ -1,0 +1,59 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "TripResponse",
+  "description": "모임(Trip) 상세 정보 응답 스키마",
+  "type": "object",
+  "properties": {
+    "id": { "type": "integer" },
+    "title": { "type": "string" },
+    "startDate": { "type": "string", "format": "date" },
+    "endDate": { "type": "string", "format": "date" },
+    "status": { "type": "string", "enum": ["PLANNING", "ACTIVE", "COMPLETED", "CANCELLED"] },
+    "visibility": { "type": "string", "enum": ["PUBLIC", "PRIVATE"] },
+    "creator": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "integer" },
+        "nickname": { "type": "string" },
+        "profileImageUrl": { "type": ["string", "null"], "format": "uri" }
+      },
+      "required": ["id", "nickname"]
+    },
+    "members": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer" },
+          "nickname": { "type": "string" },
+          "role": { "type": "string", "enum": ["CREATOR", "MANAGER", "MEMBER"] }
+        },
+        "required": ["id", "nickname", "role"]
+      }
+    },
+    "attachments": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer" },
+          "originalFileName": { "type": "string" },
+          "downloadUri": { "type": "string", "format": "uri" }
+        },
+        "required": ["id", "downloadUri"]
+      }
+    },
+    "createdAt": { "type": "string", "format": "date-time" }
+  },
+  "required": [
+    "id",
+    "title",
+    "startDate",
+    "endDate",
+    "status",
+    "visibility",
+    "creator",
+    "members",
+    "createdAt"
+  ]
+}

@@ -2,6 +2,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { api } from '@/lib/api';
 import { getAccessToken, decodeToken, Session } from '@/lib/auth';
+import { Button, Card, CardContent, CardHeader, CardTitle, Input } from '@chatstack/ui';
+import Link from 'next/link';
 
 type MessageItem = {
   id: string;
@@ -43,7 +45,7 @@ export default function Chat() {
 
   // Connect to SSE stream for real-time updates
   useEffect(() => {
-    if (!session) return;
+    if (!session?.accessToken) return;
 
     const baseUrl = process.env.NEXT_PUBLIC_SPRING_BASE_URL ?? 'http://localhost:9094';
     const eventSource = new EventSource(`${baseUrl}/api/messages/stream/${roomId}?token=${session.accessToken}`, { withCredentials: true });
@@ -92,32 +94,43 @@ export default function Chat() {
 
   if (!session) {
     return (
-      <div>
-        로그인이 필요합니다. <a href="/login">로그인</a>
+      <div className="text-center py-12">
+        <p>로그인이 필요합니다.</p>
+        <Button asChild className="mt-4">
+          <Link href="/login">로그인</Link>
+        </Button>
       </div>
     );
   }
 
   return (
-    <section>
-      <h1>Chat - {roomId}</h1>
-      <div style={{ border: '1px solid #ccc', padding: 12, borderRadius: 8, height: '60vh', overflowY: 'auto' }}>
-        {msgs.map((m, i) => (
-          <div key={m.id || i} style={{ padding: '4px 0' }}>
-            <b>{m.senderId}</b>: {m.text}
-          </div>
-        ))}
-        <div ref={endRef} />
-      </div>
-      <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
-        <input
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={(e) => (e.key === 'Enter' ? send() : undefined)}
-          style={{ flex: 1, padding: 8 }}
-        />
-        <button onClick={send}>보내기</button>
-      </div>
-    </section>
+    <Card className="w-full max-w-2xl mx-auto">
+      <CardHeader>
+        <CardTitle>Chat - #{roomId}</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="border rounded-lg p-4 h-[60vh] overflow-y-auto mb-4 space-y-4">
+          {msgs.map((m, i) => (
+            <div key={m.id || i} className={`flex items-end gap-2 ${m.senderId === session.senderId ? 'justify-end' : 'justify-start'}`}>
+              <div className={`bubble ${m.senderId === session.senderId ? 'bubble--tail-right' : 'bubble--tail-left'}`}>
+                <p className="font-bold text-xs text-muted-foreground">{m.senderId === session.senderId ? 'You' : `User ${m.senderId}`}</p>
+                <p>{m.text}</p>
+              </div>
+            </div>
+          ))}
+          <div ref={endRef} />
+        </div>
+        <div className="flex items-center gap-2">
+          <Input
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => (e.key === 'Enter' ? send() : undefined)}
+            placeholder="메시지를 입력하세요..."
+            className="flex-1"
+          />
+          <Button onClick={send} disabled={!input.trim()}>보내기</Button>
+        </div>
+      </CardContent>
+    </Card>
   );
 }

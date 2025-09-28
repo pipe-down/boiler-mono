@@ -4,6 +4,12 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useState } from 'react';
 import { api } from '@/lib/api';
 import { saveSession } from '@/lib/auth';
+import { Button } from '@chatstack/ui';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@chatstack/ui';
+import { Input } from '@chatstack/ui';
+import { Label } from '@chatstack/ui';
+import { Alert, AlertDescription, AlertTitle } from '@chatstack/ui';
+import { AlertTriangle } from '@chatstack/ui';
 
 export default function Login() {
   const router = useRouter();
@@ -30,22 +36,48 @@ export default function Login() {
   }
 
   return (
-    <section style={{ maxWidth: 420 }}>
-      <h1>로그인</h1>
-      <div style={{ display: 'grid', gap: 8 }}>
-        <input placeholder="email" value={email} onChange={(e) => setEmail(e.target.value)} disabled={loading} />
-        <input
-          placeholder="password"
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          disabled={loading}
-        />
-        <button onClick={submit} disabled={loading}>
-          {loading ? '로그인 중...' : '로그인'}
-        </button>
-        {error && <p style={{ color: 'tomato' }}>{error}</p>}
-      </div>
-    </section>
+    <div className="flex items-center justify-center py-12">
+      <Card className="w-full max-w-sm">
+        <CardHeader>
+          <CardTitle className="text-2xl">로그인</CardTitle>
+          <CardDescription>이메일과 비밀번호를 입력하여 로그인하세요.</CardDescription>
+        </CardHeader>
+        <CardContent className="grid gap-4">
+          {error && (
+            <Alert variant="destructive">
+              <AlertTriangle className="h-4 w-4" />
+              <AlertTitle>오류</AlertTitle>
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+          <div className="grid gap-2">
+            <Label htmlFor="email">이메일</Label>
+            <Input
+              id="email"
+              type="email"
+              placeholder="m@example.com"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              disabled={loading}
+            />
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="password">비밀번호</Label>
+            <Input
+              id="password"
+              type="password"
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              disabled={loading}
+            />
+          </div>
+          <Button onClick={submit} disabled={loading} className="w-full">
+            {loading ? '로그인 중...' : '로그인'}
+          </Button>
+        </CardContent>
+      </Card>
+    </div>
   );
 }
