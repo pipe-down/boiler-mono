@@ -1,0 +1,104 @@
+'use client';
+
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+import useSWR from 'swr';
+import Guard from '../(auth)/guard';
+import { Button, Input, Pagination, Table, TBody, TD, TH, THead, TR } from '@chatstack/ui';
+import { apiFetcher } from '../../lib/fetcher';
+
+const PAGE_SIZE = 20;
+
+export default function {{ pascalName }}ListPage() {
+  const router = useRouter();
+  const [page, setPage] = useState(0);
+  const [q, setQ] = useState('');
+  const [sort] = useState('{{ defaultSort }}');
+
+  const params = new URLSearchParams({
+    page: String(page),
+    size: String(PAGE_SIZE),
+    sort,
+  });
+
+  if (q) {
+    params.set('q', q);
+  }
+
+  const { data, isLoading, mutate } = useSWR(
+    `/api/bridge/api/{{ collection }}/search?${params.toString()}`,
+    apiFetcher,
+  );
+
+  const rows = data?.content ?? [];
+  const total = data?.totalElements ?? 0;
+
+  return (
+    <Guard>
+      <section className="stack gap-16">
+        <header className="stack gap-8">
+          <h1>{{ pascalName }} 목록</h1>
+          <div className="stack horizontal gap-8">
+            <Input
+              placeholder="검색어"
+              value={q}
+              onChange={(event) => {
+                setQ(event.currentTarget.value);
+                setPage(0);
+              }}
+            />
+            <Button variant="secondary" type="button" onClick={() => mutate()}>
+              검색
+            </Button>
+            <Button type="button" onClick={() => router.push('/{{ collection }}/new')}>
+              신규 등록
+            </Button>
+          </div>
+        </header>
+        <Table>
+          <THead>
+            <TR>
+              <TH>ID</TH>
+{{#displayFields}}
+              <TH>{{ schemaLabel }}</TH>
+{{/displayFields}}
+            </TR>
+          </THead>
+          <TBody>
+            {rows.map((row: any) => (
+              <TR key={row.id}>
+                <TD>
+                  <Link href={`/{{ collection }}/${row.id}`}>{row.id}</Link>
+                </TD>
+{{#displayFields}}
+                <TD>{row.{{ name }} ?? '-'}</TD>
+{{/displayFields}}
+              </TR>
+            ))}
+            {rows.length === 0 && !isLoading && (
+              <TR>
+                <TD colSpan={{{ columnCount }}} className="text-center py-12 text-sm text-white/60">
+                  데이터가 없습니다.
+                </TD>
+              </TR>
+            )}
+            {isLoading && (
+              <TR>
+                <TD colSpan={{{ columnCount }}} className="text-center py-12 text-sm text-white/60">
+                  불러오는 중...
+                </TD>
+              </TR>
+            )}
+          </TBody>
+        </Table>
+        <Pagination
+          page={page + 1}
+          pageSize={PAGE_SIZE}
+          total={total}
+          onChange={(nextPage) => setPage(nextPage - 1)}
+        />
+      </section>
+    </Guard>
+  );
+}

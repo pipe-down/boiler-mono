@@ -1,0 +1,27 @@
+asyncapi: '2.6.0'
+info:
+  title: Chatstack Events
+  version: '1.0.0'
+defaultContentType: application/json
+channels:
+  chat.messages:
+    description: Message events stream
+    subscribe:
+      message:
+        $ref: '#/components/messages/MessageEvent'
+    publish:
+      message:
+        $ref: '#/components/messages/MessageEvent'
+components:
+  messages:
+    MessageEvent:
+      name: MessageEvent
+      title: Message created/updated
+      payload:
+        type: object
+        properties:
+          id: { type: string, format: uuid }
+          roomId: { type: string }
+          text: { type: string }
+          createdAt: { type: string, format: date-time }
+        required: [id, text, createdAt]

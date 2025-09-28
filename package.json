@@ -1,0 +1,29 @@
+{
+  "name": "chatstack-workspace",
+  "private": true,
+  "version": "0.1.0",
+  "packageManager": "pnpm@9.7.0",
+  "scripts": {
+    "sdk:gen:spec": "openapi-typescript specs/openapi.yaml -o packages/sdk/src/index.ts",
+    "dev:backend": "cd app/backend && ./gradlew bootRun",
+    "dev:web": "cd app/frontend && pnpm dev",
+    "gen": "pnpm --filter @chatstack/generator plop",
+    "gen:domain": "pnpm --filter @chatstack/generator plop domain",
+    "build": "pnpm -r build",
+    "sdk:gen": "openapi-typescript http://localhost:9094/v3/api-docs -o packages/sdk/src/index.ts",
+    "sdk:build": "tsup packages/sdk/src/index.ts --format esm --dts --out-dir packages/sdk/dist",
+    "storybook": "pnpm --filter @chatstack/ui storybook"
+  },
+  "workspaces": [
+    "app/frontend",
+    "packages/*"
+  ],
+  "devDependencies": {
+    "openapi-typescript": "^7.4.2",
+    "tsup": "^8.2.4",
+    "typescript": "^5.5.4",
+    "@changesets/cli": "^2.27.8",
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0"
+  }
+}

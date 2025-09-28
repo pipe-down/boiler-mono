@@ -1,0 +1,37 @@
+package {{ package }}.domain;
+
+{{#javaImports}}
+import {{.}};
+{{/javaImports}}
+
+@Entity
+@Table(name = "{{ tableName }}")
+public class {{ pascalName }} {
+
+    @Id
+    @Column(name = "id", columnDefinition = "uuid", nullable = false)
+    private UUID id = UUID.randomUUID();
+{{#fields}}
+
+    {{{ columnAnnotation }}}
+    private {{ javaType.simple }} {{ name }};
+{{/fields}}
+
+    public UUID getId() {
+        return id;
+    }
+
+    public void setId(UUID id) {
+        this.id = id;
+    }
+{{#fields}}
+
+    public {{ javaType.simple }} get{{ pascalName }}() {
+        return {{ name }};
+    }
+
+    public void set{{ pascalName }}({{ javaType.simple }} {{ name }}) {
+        this.{{ name }} = {{ name }};
+    }
+{{/fields}}
+}

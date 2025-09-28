@@ -1,0 +1,105 @@
+# ===================================================================
+# IDEs & Editors
+# ===================================================================
+# IntelliJ
+.idea/
+*.iws
+*.iml
+*.ipr
+out/
+
+# VSCode
+.vscode/
+
+# STS
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+bin/
+
+# NetBeans
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+# ===================================================================
+# Operating System Files
+# ===================================================================
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# ===================================================================
+# General & Dependencies
+# ===================================================================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+*.log
+*.backup
+uploads/
+document/
+.gemini-clipboard/
+
+# ===================================================================
+# Backend (Gradle / Spring Boot)
+# ===================================================================
+.gradle
+build/
+!gradle/wrapper/gradle-wrapper.jar
+
+# Ignore Spring Boot build info
+build/info.properties
+
+# Querydsl Q-Class (JPA)
+**/build/generated/
+**/build/generated-sources/
+**/build/generated/querydsl/
+
+# Flyway
+flyway.conf
+**/db/migration/_archived/
+
+# ===================================================================
+# Frontend (Node / Next.js / Packages)
+# ===================================================================
+# Next.js build output
+app/frontend/.next/
+app/frontend/out/
+app/frontend/build/
+
+# Storybook build output
+packages/ui/storybook-static/
+
+# Package build outputs
+packages/ui/dist/
+packages/sdk/dist/
+
+# Local environment variables
+.env
+.env.local
+.env.*.local
+!/.env.example
+
+# ===================================================================
+# Deployment & Secrets
+# ===================================================================
+# K8s secrets
+deploy/k8s/secret.yaml
+deploy/k8s/secret-*.yaml
+deploy/k8s/*secret*.yaml
+
+# Backup workflows
+.github/workflows/backup

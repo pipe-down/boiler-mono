@@ -1,0 +1,1 @@
+package com.example.chat.chat; import java.util.*; public interface TimelineStore{ MessageDTO append(String roomCode, Long senderId, String text); List<MessageDTO> recent(String roomCode, int limit); record MessageDTO(long serverSeq,String roomId,String senderId,String text,long ts){} }

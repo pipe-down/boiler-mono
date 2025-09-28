@@ -1,0 +1,5 @@
+create table if not exists {{ tableName }} (
+  id uuid primary key{{#fields}},
+  {{ migrationLine }}
+{{/fields}}
+);

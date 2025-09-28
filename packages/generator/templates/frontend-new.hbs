@@ -1,0 +1,52 @@
+'use client';
+
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+import Guard from '../../(auth)/guard';
+import { AutoForm, Button } from '@chatstack/ui';
+import { apiFetcher } from '../../../lib/fetcher';
+import { schema } from '../_schema';
+
+export default function {{ pascalName }}CreatePage() {
+  const router = useRouter();
+  const [model, setModel] = useState<Record<string, any>>({});
+  const [isSubmitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleSubmit = async () => {
+    setSubmitting(true);
+    setError(null);
+    try {
+      await apiFetcher('/api/bridge/api/{{ collection }}', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(model),
+      });
+      router.push('/{{ collection }}');
+    } catch (err: any) {
+      setError(err?.message ?? '저장 중 오류가 발생했습니다.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <Guard>
+      <section className="stack gap-16">
+        <header>
+          <h1>{{ pascalName }} 생성</h1>
+        </header>
+        {error && <p className="text-sm text-red-400">{error}</p>}
+        <AutoForm schema={schema} value={model} onChange={setModel} />
+        <div className="stack horizontal gap-8">
+          <Button type="button" onClick={handleSubmit} disabled={isSubmitting}>
+            {isSubmitting ? '저장 중...' : '저장'}
+          </Button>
+          <Button type="button" variant="secondary" onClick={() => router.back()} disabled={isSubmitting}>
+            취소
+          </Button>
+        </div>
+      </section>
+    </Guard>
+  );
+}

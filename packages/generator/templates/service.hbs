@@ -1,0 +1,66 @@
+package {{ package }}.service;
+
+import {{ package }}.domain.{{ pascalName }};
+import {{ package }}.repository.{{ pascalName }}Repository;
+import {{ commonDataPackage }}.Pageing;
+{{#useSpecs}}
+import {{ commonDataPackage }}.Specs;
+{{/useSpecs}}
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.UUID;
+
+@Service
+public class {{ pascalName }}Service {
+
+    private final {{ pascalName }}Repository repository;
+
+    public {{ pascalName }}Service({{ pascalName }}Repository repository) {
+        this.repository = repository;
+    }
+
+    public List<{{ pascalName }}> list() {
+        return repository.findAll(defaultSort());
+    }
+
+    public Page<{{ pascalName }}> page(Integer page, Integer size, String sort) {
+        Pageable pageable = Pageing.of(page, size, withDefaultSort(sort));
+        return repository.findAll(pageable);
+    }
+
+    public Page<{{ pascalName }}> search(String q, Integer page, Integer size, String sort) {
+{{#useSpecs}}
+        Specification<{{ pascalName }}> spec = Specification.where(Specs.textLike(q{{ searchableFieldArgsWithComma }}));
+{{/useSpecs}}
+{{^useSpecs}}
+        Specification<{{ pascalName }}> spec = null;
+{{/useSpecs}}
+        Pageable pageable = Pageing.of(page, size, withDefaultSort(sort));
+        return repository.findAll(spec, pageable);
+    }
+
+    public {{ pascalName }} get(UUID id) {
+        return repository.findById(id).orElseThrow();
+    }
+
+    public {{ pascalName }} create({{ pascalName }} model) {
+        return repository.save(model);
+    }
+
+    public void delete(UUID id) {
+        repository.deleteById(id);
+    }
+
+    private Sort defaultSort() {
+        return Sort.by(Sort.Direction.DESC, "{{ defaultSortField }}");
+    }
+
+    private String withDefaultSort(String sort) {
+        return (sort == null || sort.isBlank()) ? "{{ defaultSort }}" : sort;
+    }
+}

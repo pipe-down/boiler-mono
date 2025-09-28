@@ -1,0 +1,11 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata: { name: chatstack }
+spec:
+  rules:
+  - host: chat.local
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend: { service: { name: chat-frontend, port: { number: 80 } } }

@@ -1,0 +1,46 @@
+'use client';
+
+import { useRouter } from 'next/navigation';
+import useSWR from 'swr';
+import Guard from '../../(auth)/guard';
+import { Button } from '@chatstack/ui';
+import { apiFetcher } from '../../../lib/fetcher';
+
+export default function {{ pascalName }}DetailPage({ params }: { params: { id: string } }) {
+  const router = useRouter();
+  const { data, isLoading, error } = useSWR(
+    `/api/bridge/api/{{ collection }}/${params.id}`,
+    apiFetcher,
+  );
+
+  return (
+    <Guard>
+      <section className="stack gap-16">
+        <header className="stack gap-4">
+          <h1>{{ pascalName }} 상세</h1>
+          <p className="text-sm text-white/60">ID: {params.id}</p>
+          <div className="stack horizontal gap-8">
+            <Button type="button" variant="secondary" onClick={() => router.back()}>
+              목록으로 돌아가기
+            </Button>
+          </div>
+        </header>
+        {isLoading && <p className="text-sm text-white/60">불러오는 중...</p>}
+        {error && <p className="text-sm text-red-400">데이터를 불러올 수 없습니다.</p>}
+        {data && (
+          <dl className="stack gap-6">
+{{#fields}}
+            <div>
+              <dt className="text-xs uppercase tracking-wide text-white/60">{{ schemaLabel }}</dt>
+              <dd className="text-base text-white/90">{String(data.{{ name }} ?? '—')}</dd>
+            </div>
+{{/fields}}
+{{^fields}}
+            <pre className="rounded bg-white/5 p-4 text-xs">{JSON.stringify(data, null, 2)}</pre>
+{{/fields}}
+          </dl>
+        )}
+      </section>
+    </Guard>
+  );
+}

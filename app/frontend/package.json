@@ -1,0 +1,19 @@
+{
+  "name": "chatstack-web",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start"
+  },
+  "dependencies": {
+    "@chatstack/ui": "workspace:*",
+    "ky": "^1.4.0",
+    "next": "14.2.5",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "swr": "^2.2.5"
+  },
+  "engines": { "node": ">=18.17" }
+}

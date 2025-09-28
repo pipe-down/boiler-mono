@@ -1,0 +1,275 @@
+openapi: 3.0.3
+info:
+  title: Chatstack API (Spec-Driven)
+  version: 1.0.0
+servers:
+  - url: http://localhost:9094
+    description: Local
+tags:
+  - name: health
+  - name: auth
+  - name: messages
+paths:
+  /api/health:
+    get:
+      tags: [health]
+      summary: Health check
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Health'
+
+  /auth/register:
+    post:
+      tags: [auth]
+      summary: Register a user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserPublic'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /auth/login:
+    post:
+      tags: [auth]
+      summary: Login and issue access token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /api/messages:
+    get:
+      tags: [messages]
+      summary: List all messages (non-paged)
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Message' }
+    post:
+      tags: [messages]
+      summary: Create a message
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/MessageCreate' }
+      responses:
+        '200':
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Message' }
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /api/messages/{id}:
+    get:
+      tags: [messages]
+      summary: Get a message by id
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Message' }
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+    delete:
+      tags: [messages]
+      summary: Delete a message by id
+      security: [ { bearerAuth: [] } ]
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '204': { description: No Content }
+
+  /api/messages/page:
+    get:
+      tags: [messages]
+      summary: Page messages
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/SizeParam'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PageMessage' }
+
+  /api/messages/search:
+    get:
+      tags: [messages]
+      summary: Search messages (q + sort + paging)
+      parameters:
+        - $ref: '#/components/parameters/QParam'
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/SizeParam'
+        - $ref: '#/components/parameters/SortParam'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PageMessage' }
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    IdParam:
+      name: id
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+    PageParam:
+      name: page
+      in: query
+      required: false
+      schema: { type: integer, minimum: 0, default: 0 }
+    SizeParam:
+      name: size
+      in: query
+      required: false
+      schema: { type: integer, minimum: 1, maximum: 200, default: 20 }
+    SortParam:
+      name: sort
+      in: query
+      required: false
+      schema: { type: string, example: "createdAt,desc" }
+    QParam:
+      name: q
+      in: query
+      required: false
+      schema: { type: string }
+
+  schemas:
+    Health:
+      type: object
+      properties:
+        ok: { type: boolean }
+      required: [ok]
+
+    Error:
+      type: object
+      properties:
+        error: { type: string }
+        message: { type: string }
+
+    UserPublic:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        email: { type: string, format: email }
+        displayName: { type: string }
+
+    RegisterRequest:
+      type: object
+      properties:
+        email: { type: string, format: email }
+        password: { type: string, format: password, minLength: 6 }
+        displayName: { type: string }
+      required: [email, password]
+
+    LoginRequest:
+      type: object
+      properties:
+        email: { type: string, format: email }
+        password: { type: string, format: password }
+      required: [email, password]
+
+    TokenResponse:
+      type: object
+      properties:
+        accessToken: { type: string }
+      required: [accessToken]
+
+    Message:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        roomId: { type: string }
+        senderId: { type: integer, format: int64 }
+        text: { type: string, maxLength: 2000 }
+        createdAt: { type: string, format: date-time }
+
+    MessageCreate:
+      type: object
+      properties:
+        roomId: { type: string }
+        senderId: { type: integer, format: int64 }
+        text: { type: string, maxLength: 2000 }
+      required: [text]
+
+    PageMessage:
+      type: object
+      properties:
+        content:
+          type: array
+          items: { $ref: '#/components/schemas/Message' }
+        number: { type: integer, description: '0-based page index' }
+        size: { type: integer }
+        totalElements: { type: integer }
+        totalPages: { type: integer }
+        first: { type: boolean }
+        last: { type: boolean }
+        sort:
+          type: object
+          additionalProperties: true
+      required: [content, number, size, totalElements, totalPages]
+security:
+  - bearerAuth: []

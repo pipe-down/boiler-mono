@@ -1,0 +1,5 @@
+image:
+  backend: your-registry/chat-backend:latest
+  frontend: your-registry/chat-frontend:latest
+service:
+  type: ClusterIP

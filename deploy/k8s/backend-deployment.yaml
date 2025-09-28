@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+  namespace: chatstack
+spec:
+  replicas: 1
+  selector: { matchLabels: { app: backend } }
+  template:
+    metadata: { labels: { app: backend } }
+    spec:
+      containers:
+        - name: backend
+          image: ghcr.io/your-org/chatstack-backend:{{GIT_SHA}}
+          ports: [{ containerPort: 9094 }]
+          env:
+            - { name: JDBC_URL, value: jdbc:postgresql://postgres.chatstack.svc.cluster.local:5432/chatdb }
+            - { name: JDBC_USER, value: chat }
+            - { name: JDBC_PASSWORD, value: chatpw }
+            - { name: JWT_SECRET, valueFrom: { secretKeyRef: { name: chatstack-secrets, key: jwtSecret } } }
+          readinessProbe:
+            httpGet: { path: /api/health, port: 9094 }
+            initialDelaySeconds: 5
+            periodSeconds: 5
+---
+apiVersion: v1
+kind: Service
+metadata: { name: backend, namespace: chatstack }
+spec:
+  selector: { app: backend }
+  ports: [{ port: 9094, targetPort: 9094 }]

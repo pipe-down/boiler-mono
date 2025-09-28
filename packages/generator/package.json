@@ -1,0 +1,8 @@
+{
+  "name": "@chatstack/generator",
+  "version": "0.1.0",
+  "private": true,
+  "bin": { "plop": "node_modules/.bin/plop" },
+  "scripts": { "plop": "plop" },
+  "dependencies": { "plop": "^4.0.1" }
+}

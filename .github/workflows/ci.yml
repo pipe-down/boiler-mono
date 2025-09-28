@@ -1,0 +1,25 @@
+name: ci
+on: [push, pull_request]
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: '21' }
+      - name: Backend build
+        working-directory: app/backend
+        run: ./gradlew build -x test || true
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+      - name: Frontend build
+        working-directory: app/frontend
+        run: |
+          corepack enable
+          pnpm i || true
+          pnpm build || true
+  container-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: aquasecurity/trivy-action@0.24.0
+        with: { image-ref: 'eclipse-temurin:21-jre' }

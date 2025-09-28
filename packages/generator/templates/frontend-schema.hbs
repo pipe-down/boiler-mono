@@ -1,0 +1,12 @@
+export const schema = {
+  fields: [
+{{#schemaFields}}
+    {
+      name: "{{ name }}",
+      type: "{{ type }}",
+      label: "{{ label }}",
+      required: {{ required }},
+    }{{^isLast}},{{/isLast}}
+{{/schemaFields}}
+  ],
+} as const;

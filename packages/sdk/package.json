@@ -1,0 +1,13 @@
+{
+  "name": "@chatstack/sdk",
+  "version": "0.1.0",
+  "private": false,
+  "main": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "gen": "openapi-typescript http://localhost:9094/v3/api-docs -o src/index.ts",
+    "build": "tsup src/index.ts --format esm --dts --out-dir dist"
+  },
+  "dependencies": {},
+  "devDependencies": { "tsup": "^8.2.4", "typescript": "^5.5.4", "openapi-typescript": "^7.4.2" }
+}
