@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import useSWR from 'swr';
 import Guard from '../../(auth)/guard';
 import { Button, Table, TBody, TD, TH, THead, TR } from '@chatstack/ui';
-import { apiFetcher } from '../../../lib/fetcher';
+import { apiFetcher } from '@/lib/api';
 
 type MessageDetail = {
   id: string;

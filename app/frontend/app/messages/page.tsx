@@ -5,7 +5,7 @@ import { useMemo, useState } from 'react';
 import useSWR from 'swr';
 import Guard from '../(auth)/guard';
 import { Button, Input, Pagination, Table, TBody, TD, TH, THead, TR, Textarea } from '@chatstack/ui';
-import { apiFetcher } from '../../lib/fetcher';
+import { apiFetcher, api } from '@/lib/api';
 import { useSession } from '../../hooks/useSession';
 
 const PAGE_SIZE = 20;
@@ -94,20 +94,20 @@ export default function MessagesPage() {
     setSending(true);
     setComposeError(null);
     try {
-      await apiFetcher('/api/bridge/api/messages', {
-        method: 'POST',
-        body: JSON.stringify({
+      await api.post('api/messages', {
+        json: {
           roomId: composerRoom,
           senderId: session.senderId,
           text: composerText,
-        }),
+        },
       });
       setComposerText('');
       setPage(0);
       mutate();
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
-      setComposeError(error instanceof Error ? error.message : '메시지를 전송하지 못했습니다.');
+      const errorJson = await error.response?.json().catch(() => null);
+      setComposeError(errorJson?.message || error.message || '메시지를 전송하지 못했습니다.');
     } finally {
       setSending(false);
     }
