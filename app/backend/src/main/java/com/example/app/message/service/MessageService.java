@@ -37,8 +37,11 @@ public class MessageService {
         return messageRepository.findAll(pageable);
     }
 
-    public Page<Message> search(String q, Integer page, Integer size, String sort) {
-        Specification<Message> spec = Specification.where(Specs.textLike(q, "text", "roomId"));
+    public Page<Message> search(String q, String roomId, Integer page, Integer size, String sort) {
+        Specification<Message> spec = Specification.where(Specs.textLike(q, "text"));
+        if (roomId != null && !roomId.isBlank()) {
+            spec = spec.and((root, query, cb) -> cb.equal(root.get("roomId"), roomId));
+        }
         Pageable pageable = Pageing.of(page, size, sort);
         return messageRepository.findAll(spec, pageable);
     }

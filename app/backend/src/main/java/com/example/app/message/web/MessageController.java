@@ -59,10 +59,11 @@ public class MessageController {
 
     @GetMapping("/search")
     public PageResponse<MessageResponse> search(@RequestParam(required = false) String q,
+                                                @RequestParam(required = false) String roomId,
                                                 @RequestParam(required = false) Integer page,
                                                 @RequestParam(required = false) Integer size,
                                                 @RequestParam(required = false) String sort) {
-        Page<Message> result = messageService.search(q, page, size, sort);
+        Page<Message> result = messageService.search(q, roomId, page, size, sort);
         return PageResponses.from(result.map(this::toResponse));
     }
 

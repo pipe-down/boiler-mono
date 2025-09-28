@@ -31,7 +31,7 @@ export default function Chat() {
       try {
         const initialMessages = await api
           .get('api/messages/search', {
-            searchParams: { q: `roomId:${roomId}`, sort: 'createdAt,asc', size: '50' },
+            searchParams: { roomId: roomId, sort: 'createdAt,asc', size: '50' },
           })
           .json<any>();
         setMsgs(initialMessages.content);
