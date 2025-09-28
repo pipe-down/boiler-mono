@@ -338,8 +338,8 @@ export function Header({
                   variant="ghost"
                   size="sm"
                   className="relative p-2 hover:bg-accent transition-all duration-200 focus:ring-2 focus:ring-ring focus:ring-offset-2"
-                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); onNotificationClick?.(e); }}
-                  onAuxClick={(e) => {
+                  onClick={(e: React.MouseEvent) => { e.preventDefault(); e.stopPropagation(); onNotificationClick?.(e); }}
+                  onAuxClick={(e: React.MouseEvent) => {
                     // Middle-click support → open in new tab
                     if (e.button === 1) onNotificationClick?.(e as any);
                   }}
