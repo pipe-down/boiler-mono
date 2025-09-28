@@ -27,7 +27,7 @@ public class AuthService {
                        PasswordEncoder passwordEncoder,
                        @Value("${jwt.secret}") String secret,
                        @Value("${jwt.issuer}") String issuer,
-                       @Value("${jwt.ttl-min}") long ttlMinutes) {
+                       @Value("${jwt.access-token-ttl-min}") long ttlMinutes) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.algorithm = Algorithm.HMAC256(secret);

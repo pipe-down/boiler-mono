@@ -7,7 +7,7 @@ spring:
     username: ${JDBC_USER:chat}
     password: ${JDBC_PASSWORD:chatpw}
   jpa:
-    hibernate.ddl-auto: validate
+    hibernate.ddl-auto: update
   data:
     redis:
       host: ${REDIS_HOST:localhost}

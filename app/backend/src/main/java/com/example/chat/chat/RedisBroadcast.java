@@ -5,7 +5,7 @@ import org.springframework.stereotype.Component; import jakarta.annotation.PostC
 public class RedisBroadcast implements MessageListener {
   private final StringRedisTemplate redis; private final MessageBroadcaster local; private final ObjectMapper om=new ObjectMapper();
   public RedisBroadcast(StringRedisTemplate r, MessageBroadcaster b){ this.redis=r; this.local=b; }
-  @PostConstruct public void init(){ redis.getConnectionFactory().getConnection().subscribe(this.getClass().getName().getBytes(), "chat:*".getBytes()); }
+  @PostConstruct public void init(){ redis.getConnectionFactory().getConnection().subscribe(this, "chat:*".getBytes()); }
   public void publish(TimelineStore.MessageDTO dto){ try{ String ch="chat:"+dto.roomId(); String json=om.writeValueAsString(dto); redis.convertAndSend(ch, json);}catch(Exception ignore){} }
   @Override public void onMessage(Message message, byte[] pattern){ try{ String json=new String(message.getBody()); var n=om.readTree(json);
     var dto=new TimelineStore.MessageDTO(n.get("serverSeq").asLong(), n.get("roomId").asText(), n.get("senderId").asText(), n.get("text").asText(), n.get("ts").asLong());
