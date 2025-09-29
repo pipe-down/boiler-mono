@@ -103,3 +103,5 @@ deploy/k8s/*secret*.yaml
 
 # Backup workflows
 .github/workflows/backup
+
+app/prev-backend

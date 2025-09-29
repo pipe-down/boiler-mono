@@ -1,57 +1,842 @@
+# ===================================================================
+# COMMON: Default Spring Boot & Application Main Configuration
+# ===================================================================
 server:
-  port: 9094
+  port: ${SERVER_PORT:9094}
+  forward-headers-strategy: framework
+  use-forward-headers: true
+  servlet:
+    session:
+      cookie:
+        secure: true
+        http-only: true
+        same-site: lax
+        path: /
+        max-age: 86400
 
 spring:
-#  main:
-#    lazy-initialization: true
+  application:
+    name: getmoim-app
+  profiles:
+    active: dev
+  main:
+    lazy-initialization: false
+  task:
+    execution:
+      pool:
+        core-size: 2
+        max-size: 5
+        queue-capacity: 100
+    scheduling:
+      pool:
+        size: 2
+  jmx:
+    enabled: false
   datasource:
-    url: ${JDBC_URL:jdbc:postgresql://localhost:5432/chatdb}
-    username: ${JDBC_USER:chat}
-    password: ${JDBC_PASSWORD:chatpw}
+    url: ${JDBC_URL:jdbc:postgresql://localhost:5432/getmoim}
+    username: ${JDBC_USER:getmoim}
+    password: ${JDBC_PASSWORD:getmoim}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 10
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      keepalive-time: 300000
+      validation-timeout: 5000
+      leak-detection-threshold: 60000
+      auto-commit: false
+      connection-test-query: SELECT 1
+      pool-name: getmoim-pool
+      register-mbeans: false
+      allow-pool-suspension: false
   jpa:
-    hibernate.ddl-auto: update
+    hibernate:
+      ddl-auto: none
+      naming:
+        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+    show-sql: false
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: false
+        default_batch_fetch_size: 100
+        query:
+          plan_cache_max_size: 2048
+          plan_parameter_metadata_max_size: 128
+          in_clause_parameter_padding: true
+        cache:
+          use_second_level_cache: false
+          use_query_cache: false
+        generate_statistics: false
+        jdbc:
+          batch_size: 100
+          batch_versioned_data: true
+        order_inserts: true
+        order_updates: true
+        connection:
+          provider_disables_autocommit: true
+          handling_mode: DELAYED_ACQUISITION_AND_RELEASE_AFTER_TRANSACTION
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    locations: classpath:db/migration
+  cache:
+    type: redis
+    cache-names:
+      - userCache
+      - postCache
+      - siteSettingsCache
+      - defaultCache
+    caffeine:
+      spec: maximumSize=500,expireAfterAccess=300s
   data:
     redis:
       host: ${REDIS_HOST:localhost}
       port: ${REDIS_PORT:6379}
-  kafka:
-    bootstrap-servers: ${KAFKA_BOOTSTRAP:localhost:9092}
+      password: ${REDIS_PASSWORD:}
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 10MB
+  batch:
+    job:
+      enabled: false
+    jdbc:
+      initialize-schema: embedded
+  banner:
+    location: classpath:banner.txt
+    charset: UTF-8
+  messages:
+    basename: messages
+    encoding: UTF-8
+    fallback-to-system-locale: false
+  security:
+    oauth2:
+      client:
+        registration:
+          kakao:
+            client-id: ${KAKAO_CLIENT_ID:kakao-client-id-placeholder}
+            client-secret: ${KAKAO_CLIENT_SECRET:kakao-client-secret-placeholder}
+            redirect-uri: ${OAUTH2_KAKAO_REDIRECT_URI:{baseUrl}/login/oauth2/code/{registrationId}}
+            authorization-grant-type: authorization_code
+            client-authentication-method: client_secret_post
+            scope:
+              - profile_nickname
+              - profile_image
+              - account_email
+          google:
+            client-id: ${GOOGLE_CLIENT_ID:google-client-id-placeholder}
+            client-secret: ${GOOGLE_CLIENT_SECRET:google-client-secret-placeholder}
+            redirect-uri: ${OAUTH2_GOOGLE_REDIRECT_URI:{baseUrl}/login/oauth2/code/{registrationId}}
+            scope:
+              - profile
+              - email
+          naver:
+            client-id: ${NAVER_CLIENT_ID:naver-client-id-placeholder}
+            client-secret: ${NAVER_CLIENT_SECRET:naver-client-secret-placeholder}
+            redirect-uri: ${OAUTH2_NAVER_REDIRECT_URI:{baseUrl}/login/oauth2/code/{registrationId}}
+            authorization-grant-type: authorization_code
+            client-authentication-method: client_secret_post
+            client-name: Naver
+            scope:
+              - name
+              - email
+              - profile_image
+        provider:
+          kakao:
+            authorization-uri: https://kauth.kakao.com/oauth/authorize
+            token-uri: https://kauth.kakao.com/oauth/token
+            user-info-uri: https://kapi.kakao.com/v2/user/me
+            user-name-attribute: id
+          google:
+            authorization-uri: https://accounts.google.com/o/oauth2/v2/auth
+            token-uri: https://oauth2.googleapis.com/token
+            user-info-uri: https://www.googleapis.com/oauth2/v3/userinfo
+            user-name-attribute: sub
+          naver:
+            authorization-uri: https://nid.naver.com/oauth2.0/authorize
+            token-uri: https://nid.naver.com/oauth2.0/token
+            user-info-uri: https://openapi.naver.com/v1/nid/me
+            user-name-attribute: response
 
-management:
-  endpoints.web.exposure.include: health,info,prometheus
-  metrics.tags.env: ${ENV:local}
+logging:
+  level:
+    root: INFO
+    com.getmoim: INFO
+    com.getmoim.monitoring.MonitoringScheduler: INFO
+
+springdoc:
+  default-consumes-media-type: application/json;charset=UTF-8
+  default-produces-media-type: application/json;charset=UTF-8
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: alpha
+    tags-sorter: alpha
+  api-docs:
+    path: /api-docs
+  show-actuator: true
+
+app:
+  name: ${spring.application.name}
+  frontend-url: ${APP_FRONTEND_URL:http://localhost:3000}
+  backend-url: ${APP_BACKEND_URL:http://localhost:9094}
+  oauth2:
+    authorizedRedirectUri: ${OAUTH2_REDIRECT_URI:http://localhost:3000/oauth-callback}
+    loginIdSetupUri: ${OAUTH2_LOGIN_ID_SETUP_URI:http://localhost:3000/setup-login-id}
+  cookie:
+    path: /
+    httpOnly: true
+    refreshTokenExpirationDays: 14
+
+getmoim:
+  ws:
+    allowed-origins: ${GETMOIM_WS_ALLOWED_ORIGINS:*}
+    broker:
+      mode: ${GETMOIM_WS_BROKER_MODE:simple}
+    relay:
+      host: ${GETMOIM_STOMP_HOST:localhost}
+      port: ${GETMOIM_STOMP_PORT:61613}
+      virtual-host: ${GETMOIM_STOMP_VHOST:/}
+      client-login: ${GETMOIM_STOMP_CLIENT_LOGIN:guest}
+      client-passcode: ${GETMOIM_STOMP_CLIENT_PASSCODE:guest}
+      system-login: ${GETMOIM_STOMP_SYSTEM_LOGIN:guest}
+      system-passcode: ${GETMOIM_STOMP_SYSTEM_PASSCODE:guest}
+      heartbeat:
+        send-interval-ms: ${GETMOIM_STOMP_HEARTBEAT_SEND_MS:10000}
+        receive-interval-ms: ${GETMOIM_STOMP_HEARTBEAT_RECEIVE_MS:10000}
+    ratelimit:
+      enabled: ${GETMOIM_WS_RATELIMIT_ENABLED:true}
+      typing:
+        permits: ${GETMOIM_WS_RATELIMIT_TYPING_PERMITS:8}
+        window-ms: ${GETMOIM_WS_RATELIMIT_TYPING_WINDOW_MS:2000}
+      send:
+        permits: ${GETMOIM_WS_RATELIMIT_SEND_PERMITS:20}
+        window-ms: ${GETMOIM_WS_RATELIMIT_SEND_WINDOW_MS:1000}
+    presence:
+      enabled: ${GETMOIM_WS_PRESENCE_ENABLED:true}
+      ttl-seconds: ${GETMOIM_WS_PRESENCE_TTL_SECONDS:120}
+    bridge:
+      enabled: ${GETMOIM_WS_BRIDGE_ENABLED:false}
+      topicPattern: ${GETMOIM_WS_BRIDGE_PATTERN:ws:bridge:*}
+notifications:
+  websocket:
+    enabled: ${NOTIFICATIONS_WEBSOCKET_ENABLED:true}
+
+file:
+  upload-dir: ${UPLOAD_DIR:./uploads}
+  base-url: ${FILE_BASE_URL:http://localhost:9094/api/v1/files}
+  cleaner:
+    enabled: ${FILE_CLEANER_ENABLED:true}
+    age-hours: ${FILE_CLEANER_AGE_HOURS:24}
+  thumbnail:
+    enabled: ${FILE_THUMBNAIL_ENABLED:true}
+    width: ${FILE_THUMBNAIL_WIDTH:150}
+    height: ${FILE_THUMBNAIL_HEIGHT:150}
+    suffix: ${FILE_THUMBNAIL_SUFFIX:_thumb}
+  allowed-extensions:
+    images: ${FILE_ALLOWED_IMAGES:jpg,jpeg,png,gif,bmp,webp,svg}
+    documents: ${FILE_ALLOWED_DOCUMENTS:pdf,doc,docx,xls,xlsx,ppt,pptx,txt}
+    videos: ${FILE_ALLOWED_VIDEOS:mp4,avi,mov,wmv,flv,mkv}
+  max-size:
+    image: ${FILE_MAX_IMAGE_SIZE:10485760}
+    document: ${FILE_MAX_DOCUMENT_SIZE:52428800}
+    video: ${FILE_MAX_VIDEO_SIZE:104857600}
 
 jwt:
-  issuer: chatstack-prod
-  access-token-ttl-min: 15
-  refresh-token-ttl-days: 14
-  secret: ${JWT_SECRET:dev-secret-change-me}
+  secret-key: ${JWT_SECRET_KEY:hisIsAVeryLongAndStrongerSecretKeyForHS512AlgorithmAtLeast64BytesLongSoPleaseMakeItSecureEnoughExample!}
+  access-token-expiration-minutes: 30
+  refresh-token-expiration-days: 14
+  refresh-token-rotation-grace-seconds: ${JWT_REFRESH_TOKEN_ROTATION_GRACE_SECONDS:60}
 
-cookie:
-  secure: ${COOKIE_SECURE:false}
-  samesite: ${COOKIE_SAMESITE:Lax}
-  domain: ${COOKIE_DOMAIN:}
+ai:
+  gemini:
+    api-key: ${GEMINI_API_KEY:gemini-api-key-placeholder}
+    base-url: https://generativelanguage.googleapis.com
+    model: gemini-2.0-flash-exp
+    timeout: 90s
+    max-tokens: 8192
+    temperature: 0.7
+  ocr:
+    google-vision:
+      api-key: ${GOOGLE_VISION_API_KEY:google-vision-api-key-placeholder}
+      base-url: https://vision.googleapis.com
+      timeout: 30s
+    image:
+      max-width: 1024
+      max-height: 1024
+      quality: 0.8
 
-opensearch:
-  url: ${OPENSEARCH_URL:http://localhost:9200}
-  index: ${OPENSEARCH_INDEX:chat-messages}
+management:
+  tracing:
+    sampling:
+      probability: 1.0
+  zipkin:
+    tracing:
+      endpoint: ${ZIPKIN_ENDPOINT:http://localhost:9411/api/v2/spans}
 
-s3:
-  endpoint: ${S3_ENDPOINT:http://localhost:9000}
-  region: ${S3_REGION:us-east-1}
-  bucket: ${S3_BUCKET:chat-attachments}
-  access-key: ${S3_ACCESS_KEY:minioadmin}
-  secret-key: ${S3_SECRET_KEY:minioadmin}
-  path-style: ${S3_PATH_STYLE:true}
+---
+# ===================================================================
+# DEV: Development Profile
+# ===================================================================
+spring:
+  config:
+    activate:
+      on-profile: dev
+  servlet:
+    session:
+      cookie:
+        secure: false
+        same-site: Lax
+  datasource:
+    url: jdbc:h2:mem:testdb_new;MODE=PostgreSQL;DB_CLOSE_DELAY=0;DB_CLOSE_ON_EXIT=TRUE;NON_KEYWORDS=USER
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+    hikari:
+      maximum-pool-size: 15
+      minimum-idle: 3
+      idle-timeout: 300000
+      max-lifetime: 900000
+      connection-timeout: 15000
+      leak-detection-threshold: 45000
+      validation-timeout: 5000
+      connection-test-query: SELECT 1
+      pool-name: getmoim-dev-pool
+  jpa:
+    database: H2
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: create-drop
+    defer-datasource-initialization: true
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+        format_sql: true
+        jdbc:
+          batch_size: 100
+          batch_versioned_data: true
+          fetch_size: 50
+        order_inserts: true
+        order_updates: true
+        generate_statistics: true
+        session:
+          events:
+            log:
+              LOG_QUERIES_SLOWER_THAN_MS: 100
+  flyway:
+    enabled: false
+  batch:
+    job:
+      enabled: false
+    jdbc:
+      initialize-schema: never
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.batch.BatchAutoConfiguration
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+  sql:
+    init:
+      mode: always
+      schema-locations:
+        - classpath:h2-postgresql-compatibility.sql
+        - classpath:schema.sql
+      data-locations:
+        - classpath:import.sql
+      continue-on-error: true
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      timeout: 2000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-wait: -1ms
+          max-idle: 8
+          min-idle: 0
 
-idempotency:
-  ttl-sec: ${IDEMP_TTL_SEC:120}
+logging:
+  level:
+    root: INFO
+    com.getmoim: INFO
+    com.getmoim.dev: DEBUG
+    com.getmoim.domain.ai: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.orm.jdbc.bind: WARN
+    org.hibernate.stat: WARN
+    org.hibernate.engine.internal.StatisticalLoggingSessionEventListener: WARN
+    org.springframework: WARN
+    org.springframework.boot: INFO
+    org.springframework.boot.autoconfigure: WARN
+    org.springframework.orm.jpa: WARN
+    org.springframework.data: WARN
+    org.springframework.web: WARN
+    org.springframework.security: WARN
+    org.springframework.transaction: WARN
+    io.netty: WARN
+    org.apache: WARN
+    com.zaxxer.hikari: WARN
+    org.ehcache: WARN
+    io.micrometer: WARN
+    brave: WARN
+    zipkin2: ERROR
+    org.h2: WARN
+    zipkin2.reporter: ERROR
+    org.springframework.web.reactive.function.client: ERROR
+    org.springframework.context.support.PostProcessorRegistrationDelegate: ERROR
+    io.netty.resolver.dns.DnsServerAddressStreamProviders: ERROR
+    org.springframework.boot.actuate: WARN
 
-retention:
-  days: ${MESSAGE_RETENTION_DAYS:90}
+app:
+  frontend-url: http://localhost:3000
+  backend-url: http://localhost:9094
+  oauth2:
+    authorizedRedirectUri: http://localhost:3000/oauth-callback
+    loginIdSetupUri: http://localhost:3000/setup-login-id
+  dev:
+    bypass-login:
+      enabled: true
+      user-email: "admin@getmoim.com"
+  cookie:
+    secure: false
+    sameSite: Lax
 
-otel:
-  exporter: ${OTEL_EXPORTER_OTLP_ENDPOINT:http://localhost:4317}
+file:
+  upload-dir: ${UPLOAD_DIR:./uploads}
+  base-url: ${FILE_BASE_URL:http://localhost:9094/api/v1/files}
 
-sentry:
-  dsn: ${SENTRY_DSN:}
+ai:
+  gemini:
+    model: gemini-2.5-pro
+    timeout: 90s
+    max-tokens: 8192
+    temperature: 0.7
+
+getmoim:
+  ws:
+    token:
+      one-time:
+        enabled: true
+
+---
+# ===================================================================
+# LOCAL: Local Development Profile
+# ===================================================================
+spring:
+  config:
+    activate:
+      on-profile: local
+  servlet:
+    session:
+      cookie:
+        secure: false
+        same-site: Lax
+  datasource:
+    url: jdbc:h2:mem:testdb_new;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE;MODE=PostgreSQL;NON_KEYWORDS=USER
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+      idle-timeout: 300000
+      max-lifetime: 600000
+      connection-timeout: 10000
+      leak-detection-threshold: 30000
+      validation-timeout: 5000
+      connection-test-query: SELECT 1
+      pool-name: getmoim-local-pool
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    defer-datasource-initialization: true
+    properties:
+      hibernate:
+        jdbc:
+          batch_size: 25
+          batch_versioned_data: true
+        order_inserts: true
+        order_updates: true
+  flyway:
+    enabled: true
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+  sql:
+    init:
+      mode: always
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      timeout: 2000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-wait: -1ms
+          max-idle: 8
+          min-idle: 0
+
+logging:
+  level:
+    root: INFO
+    com.getmoim: INFO
+    com.getmoim.dev: DEBUG
+    org.hibernate.SQL: WARN
+    org.hibernate.orm.jdbc.bind: WARN
+    org.hibernate.stat: WARN
+    org.hibernate.engine.internal.StatisticalLoggingSessionEventListener: WARN
+    org.springframework: WARN
+    org.springframework.boot: INFO
+    org.springframework.boot.autoconfigure: WARN
+    org.springframework.orm.jpa: WARN
+    org.springframework.data: WARN
+    org.springframework.web: WARN
+    org.springframework.security: WARN
+    io.netty: WARN
+    org.apache: WARN
+    com.zaxxer.hikari: WARN
+    org.ehcache: WARN
+    io.micrometer: WARN
+    brave: WARN
+    zipkin2: ERROR
+    org.h2: WARN
+
+app:
+  frontend-url: http://localhost:3000
+  backend-url: http://localhost:9094
+  oauth2:
+    authorizedRedirectUri: http://localhost:3000/oauth-callback
+    loginIdSetupUri: http://localhost:3000/setup-login-id
+  dev:
+    bypass-login:
+      enabled: true
+      user-email: "admin@getmoim.com"
+  cookie:
+    secure: false
+    sameSite: Lax
+
+file:
+  upload-dir: ${UPLOAD_DIR:./uploads-local}
+  base-url: ${FILE_BASE_URL:http://localhost:9094/api/v1/files}
+
+getmoim:
+  ws:
+    token:
+      one-time:
+        enabled: true
+
+---
+# ===================================================================
+# PROD: Production Profile
+# ===================================================================
+spring:
+  config:
+    activate:
+      on-profile: prod
+  main:
+    lazy-initialization: false
+    web-application-type: servlet
+  datasource:
+    url: jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_NAME}?sslmode=disable&connectTimeout=30&socketTimeout=60&tcpKeepAlive=true
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    hikari:
+      maximum-pool-size: ${SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE:20}
+      minimum-idle: ${SPRING_DATASOURCE_HIKARI_MINIMUM_IDLE:10}
+      connection-timeout: ${SPRING_DATASOURCE_HIKARI_CONNECTION_TIMEOUT:30000}
+      idle-timeout: ${SPRING_DATASOURCE_HIKARI_IDLE_TIMEOUT:600000}
+      max-lifetime: ${SPRING_DATASOURCE_HIKARI_MAX_LIFETIME:1800000}
+  jpa:
+    database: POSTGRESQL
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: false
+        show_sql: false
+        use_sql_comments: false
+        jdbc:
+          batch_size: 25
+          batch_versioned_data: true
+          fetch_size: 100
+          lob:
+            non_contextual_creation: true
+        order_inserts: true
+        order_updates: true
+        query:
+          plan_cache_max_size: 2048
+          plan_parameter_metadata_max_size: 128
+          in_clause_parameter_padding: true
+        connection:
+          provider_disables_autocommit: true
+          handling_mode: DELAYED_ACQUISITION_AND_RELEASE_AFTER_TRANSACTION
+        cache:
+          use_second_level_cache: false
+          use_query_cache: false
+        generate_statistics: false
+        session:
+          events:
+            log:
+              LOG_QUERIES_SLOWER_THAN_MS: 1000000
+  data:
+    redis:
+      host: ${REDIS_HOST:-172.17.0.1}
+      port: ${REDIS_PORT:-6379}
+      password: ${REDIS_PASSWORD}
+      timeout: 5000
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 4
+          min-idle: 2
+          max-wait: 5000
+        shutdown-timeout: 100
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    baseline-version: 0
+    out-of-order: true
+    locations: classpath:db/migration
+  sql:
+    init:
+      mode: never
+  zipkin:
+    enabled: false
+  sleuth:
+    enabled: false
+
+server:
+  tomcat:
+    threads:
+      max: 100
+      min-spare: 10
+    max-connections: 200
+    accept-count: 100
+    connection-timeout: 20000
+  servlet:
+    session:
+      cookie:
+        secure: true
+        http-only: true
+        same-site: lax
+        path: /
+        max-age: 86400
+
+security:
+  refresh-token:
+    pepper: ${REFRESH_TOKEN_PEPPER:change-this-in-prod}
+
+auth:
+  at-blacklist:
+    enabled: ${AUTH_AT_BLACKLIST_ENABLED:false}
+
+app:
+  cookie:
+    domain: ${APP_COOKIE_DOMAIN:.getmoim.com}
+    path: /
+    httpOnly: true
+    secure: ${APP_COOKIE_SECURE:true}
+    sameSite: ${APP_COOKIE_SAMESITE:None}
+    refreshTokenExpirationDays: ${APP_RT_EXP_DAYS:14}
+  frontend-url: https://getmoim.com
+  backend-url: https://api.getmoim.com
+  oauth2:
+    authorizedRedirectUri: https://getmoim.com/oauth-callback
+    loginIdSetupUri: https://getmoim.com/setup-login-id
+    debug: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus,websocketStats
+  endpoint:
+    health:
+      show-details: always
+  health:
+    db:
+      enabled: true
+    redis:
+      enabled: true
+    diskspace:
+      enabled: true
+      threshold: 536870912
+  tracing:
+    sampling:
+      probability: 0.0
+    enabled: false
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+    enable:
+      all: false
+      jvm: true
+      system: true
+      process: true
+      http: true
+      tomcat: false
+      logback: false
+      hikaricp: true
+
+logging:
+  level:
+    root: WARN
+    com.getmoim: INFO
+    org.springframework.web: WARN
+    org.springframework.security: WARN
+    org.hibernate: WARN
+    com.zaxxer.hikari: WARN
+    org.hibernate.SQL: ERROR
+    org.hibernate.type.descriptor.sql: ERROR
+    org.hibernate.type.descriptor.sql.BasicBinder: ERROR
+    org.hibernate.engine.jdbc.spi.SqlStatementLogger: ERROR
+    org.springframework.jdbc.core: ERROR
+    org.springframework.jdbc.core.JdbcTemplate: ERROR
+    org.springframework.jdbc.core.StatementCreatorUtils: ERROR
+    org.springframework.transaction: WARN
+    org.springframework.orm.jpa: WARN
+    org.springframework.context.support.PostProcessorRegistrationDelegate: ERROR
+    org.flywaydb.core: INFO
+
+getmoim:
+  ws:
+    broker:
+      mode: relay
+    relay:
+      host: ${GETMOIM_STOMP_HOST:localhost}
+      port: ${GETMOIM_STOMP_PORT:61613}
+      virtual-host: ${GETMOIM_STOMP_VHOST:/}
+      client-login: ${GETMOIM_STOMP_CLIENT_LOGIN:guest}
+      client-passcode: ${GETMOIM_STOMP_CLIENT_PASSCODE:guest}
+      system-login: ${GETMOIM_STOMP_SYSTEM_LOGIN:guest}
+      system-passcode: ${GETMOIM_STOMP_SYSTEM_PASSCODE:guest}
+      heartbeat:
+        send-interval-ms: ${GETMOIM_STOMP_HEARTBEAT_SEND_MS:10000}
+        receive-interval-ms: ${GETMOIM_STOMP_HEARTBEAT_RECEIVE_MS:10000}
+    ratelimit:
+      enabled: true
+      typing:
+        permits: 6
+        window-ms: 2000
+      send:
+        permits: 15
+        window-ms: 1000
+    presence:
+      enabled: true
+      ttl-seconds: 120
+    org.springframework.beans.factory.support: WARN
+    org.hibernate.jpa: WARN
+    org.hibernate.orm.deprecation: ERROR
+    org.hibernate.stat: ERROR
+    org.hibernate.engine.internal.StatisticalLoggingSessionEventListener: ERROR
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+  async:
+    queue-size: 256
+    include-caller-data: false
+
+monitoring:
+  alerts:
+    enabled: false
+  scheduler:
+    enabled: false
+
+file:
+  storage-type: ${FILE_STORAGE_TYPE:R2}
+  upload-dir: ${UPLOAD_DIR:./uploads}
+  base-url: ${FILE_BASE_URL:https://api.getmoim.com/api/v1/files}
+  r2:
+    enabled: ${R2_ENABLED:true}
+    endpoint: ${R2_ENDPOINT}
+    region: ${R2_REGION:auto}
+    access-key: ${R2_ACCESS_KEY}
+    secret-key: ${R2_SECRET_KEY}
+    bucket-name: ${R2_BUCKET_NAME:getmoim-r2}
+    public-url: ${R2_PUBLIC_URL}
+    presigned-url-expiration: ${R2_PRESIGNED_URL_EXPIRATION:3600}
+    use-transfer-acceleration: false
+  thumbnail:
+    enabled: ${FILE_THUMBNAIL_ENABLED:true}
+    width: ${FILE_THUMBNAIL_WIDTH:150}
+    height: ${FILE_THUMBNAIL_HEIGHT:150}
+    suffix: ${FILE_THUMBNAIL_SUFFIX:_thumb}
+  allowed-extensions:
+    images: ${FILE_ALLOWED_IMAGES:jpg,jpeg,png,gif,bmp,webp,svg}
+    documents: ${FILE_ALLOWED_DOCUMENTS:pdf,doc,docx,xls,xlsx,ppt,pptx,txt}
+    videos: ${FILE_ALLOWED_VIDEOS:mp4,avi,mov,wmv,flv,mkv}
+  max-size:
+    image: ${FILE_MAX_IMAGE_SIZE:10485760}
+    document: ${FILE_MAX_DOCUMENT_SIZE:52428800}
+    video: ${FILE_MAX_VIDEO_SIZE:104857600}
+
+---
+# ===================================================================
+# TEST: Test Profile
+# ===================================================================
+spring:
+  config:
+    activate:
+      on-profile: test
+  datasource:
+    url: jdbc:h2:mem:testdb;MODE=PostgreSQL;DB_CLOSE_DELAY=0;DB_CLOSE_ON_EXIT=TRUE;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+    hikari:
+      maximum-pool-size: 5
+      minimum-idle: 1
+      idle-timeout: 60000
+      max-lifetime: 300000
+      connection-timeout: 5000
+      validation-timeout: 3000
+      pool-name: getmoim-test-pool
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.H2Dialect
+        default_batch_fetch_size: 100
+        jdbc:
+          batch_size: 100
+          batch_versioned_data: true
+        order_inserts: true
+        order_updates: true
+        generate_statistics: true
+        query:
+          plan_cache_max_size: 256
+          plan_parameter_metadata_max_size: 32
+          in_clause_parameter_padding: true
+    generate-ddl: true
+  flyway:
+    enabled: false
+  cache:
+    type: none
+  sql:
+    init:
+      mode: never
+
+logging:
+  level:
+    org.flywaydb: DEBUG
+    org.hibernate.SQL: DEBUG
